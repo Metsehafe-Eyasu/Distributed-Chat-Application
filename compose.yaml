@@ -1,0 +1,43 @@
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - DB_URI=mongodb://db:27017/auth
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - db
+
+  db:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  chat-service:
+    build: ./chat-service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - DB_URI=mongodb://db:27017/chat
+    depends_on:
+      - db
+
+  websocket-service:
+    build: ./websocket-service
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - CHAT_SERVICE_URL=http://chat-service:5002/chat
+    depends_on:
+      - chat-service
+
+
+volumes:
+  mongo_data:
