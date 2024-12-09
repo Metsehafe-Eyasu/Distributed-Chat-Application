@@ -34,35 +34,36 @@ This project implements a real-time chat application’s backend stack using con
 
 ## Architecture Diagram
 
-```plaintext
-           ┌────────────────────────────────┐
+```
+           ┌─────────────────┐
            │      Client     │
            │  (e.g. Postman) │
-           └──────────────────────┘
+           └───────┬─────────┘
                    │
         JWT        │
         Auth       │
-     ┌────────────────────────────────┐
+     ┌─────────────┴─────────────┐
      │        Auth Service       │
      │ /register, /login         │
      │ Issues JWT                │
-     └────────────────────────────┘
+     └───────────┬───────────────┘
                  │
-  ┌─────────────────────────────┐
+  ┌──────────────┼─────────────────┐
   │              JWT               │
   │              Auth              │
   ▼                                ▼
-┌───────────────────────────────┐         ┌───────────────────────────────┐
+┌──────────────────┐         ┌──────────────────┐
 │    Chat Service  │         │ WebSocket Service│
 │ /chat/send       │         │ ws://...:5003?   │
 │ /chat/history    │         │  token=JWT       │
 │ Persist Messages │         │ Auth via JWT     │
 │ Publish Events   │         │ Subscribe Events │
-└────────────────────────────┘         └────────────────────────────┘
+└───────┬──────────┘         └───────┬──────────┘
         │  Publish "new_message"     │  Consume "new_message"
         │        events              │  events
         ▼                            ▼
-     ┌────────────────────────┐         ┌───────────────────────┐
+     ┌─────────────────┐         ┌──────────────┐
      │    RabbitMQ     │         │    MongoDB   │
      │  fanout exchange│         │  chat/user DB│
-     └────────────────────────┘         └───────────────────────┘
+     └─────────────────┘         └──────────────┘
+```
