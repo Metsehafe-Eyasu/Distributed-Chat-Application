@@ -1,13 +1,13 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const chatRoutes = require('./routes/chatRoutes');
-const connectDB = require('./config/db');
+// src/app.js
 require('dotenv').config();
+const express = require('express');
+const connectDB = require('./config/db');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 connectDB();
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use('/chat', chatRoutes);
 
 module.exports = app;

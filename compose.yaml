@@ -5,10 +5,35 @@ services:
       - "5001:5001"
     environment:
       - PORT=5001
-      - DB_URI=mongodb://db:27017/auth
+      - DATABASE_URL=mongodb://db:27017/auth
       - JWT_SECRET=your_jwt_secret
     depends_on:
       - db
+
+  chat-service:
+    build: ./chat-service
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - DATABASE_URL=mongodb://db:27017/chat
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - db
+      - rabbitmq
+
+  websocket-service:
+    build: ./websocket-service
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - JWT_SECRET=your_jwt_secret
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - AUTH_SERVICE_URL=http://auth-service:5001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   db:
     image: mongo:latest
@@ -18,26 +43,21 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  chat-service:
-    build: ./chat-service
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
-      - "5002:5002"
+      - "5672:5672"
+      - "15672:15672"
     environment:
-      - PORT=5002
-      - DB_URI=mongodb://db:27017/chat
-    depends_on:
-      - db
-
-  websocket-service:
-    build: ./websocket-service
-    ports:
-      - "5003:5003"
-    environment:
-      - PORT=5003
-      - CHAT_SERVICE_URL=http://chat-service:5002/chat
-    depends_on:
-      - chat-service
-
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
 volumes:
   mongo_data:

@@ -1,24 +1,26 @@
+// src/controllers/chatController.js
 const Message = require('../models/Message');
+const { publishMessage } = require('../rabbitmq');
 
-// Save a message
-const sendMessage = async (req, res) => {
-  const { sender, recipient, content } = req.body;
-
+async function sendMessage(req, res) {
   try {
+    const { sender, recipient, content } = req.body;
     const message = new Message({ sender, recipient, content });
     await message.save();
-    res.status(201).json({ message: 'Message sent successfully', data: message });
+
+    // Publish an event for the new message
+    await publishMessage({ type: 'new_message', data: message });
+
+    return res.status(201).json({ message: 'Message sent successfully', data: message });
   } catch (err) {
     console.error('Error sending message:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
-};
+}
 
-// Get messages between two users
-const getMessages = async (req, res) => {
-  const { user1, user2 } = req.query;
-
+async function getMessages(req, res) {
   try {
+    const { user1, user2 } = req.query;
     const messages = await Message.find({
       $or: [
         { sender: user1, recipient: user2 },
@@ -26,11 +28,11 @@ const getMessages = async (req, res) => {
       ],
     }).sort({ timestamp: 1 });
 
-    res.json({ data: messages });
+    return res.json({ data: messages });
   } catch (err) {
     console.error('Error fetching messages:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
-};
+}
 
 module.exports = { sendMessage, getMessages };
