@@ -159,8 +159,8 @@ sequenceDiagram
   Content-Type: application/json
   Body:
   {
-    "username": "user1",
-    "password": "pass1"
+    "username": "username1",
+    "password": "password1"
   }
   ```
 - Expected Response:
@@ -177,8 +177,8 @@ Register another user (`user2`) similarly.
   Content-Type: application/json
   Body:
   {
-    "username": "user1",
-    "password": "pass1"
+    "username": "username1",
+    "password": "password1"
   }
   ```
 - Expected Response:
